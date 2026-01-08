@@ -19,20 +19,20 @@ import java.util.Date;
 public class TokenUtils {
 
     // Izdavac tokena
-    @Value("spring-security-example")
+    @Value("${jwt.app-name}")
     private String APP_NAME;
 
     // Tajna koju samo backend aplikacija treba da zna kako bi mogla da generise i proveri JWT https://jwt.io/
     // Za algritam HS512, kljuc mora biti najmanje 512 bita (64 bajta) dugacak
-    @Value("somesecret-key-for-jwt-token-has-to-be-512-bits-long-1234567890123456789")
+    @Value("${jwt.secret}")
     public String SECRET;
 
     // Period vazenja tokena - 30 minuta
-    @Value("1800000")
+    @Value("${jwt.expiration}")
     private int EXPIRES_IN;
 
     // Naziv headera kroz koji ce se prosledjivati JWT u komunikaciji server-klijent
-    @Value("Authorization")
+    @Value("${jwt.auth-header}")
     private String AUTH_HEADER;
 
     // Moguce je generisati JWT za razlicite klijente (npr. web i mobilni klijenti nece imati isto trajanje JWT,
