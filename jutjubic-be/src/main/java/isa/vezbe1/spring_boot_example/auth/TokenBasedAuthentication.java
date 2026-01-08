@@ -1,4 +1,4 @@
-package isa.vezbe1.spring_boot_example.security.auth;
+package isa.vezbe1.spring_boot_example.auth;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;

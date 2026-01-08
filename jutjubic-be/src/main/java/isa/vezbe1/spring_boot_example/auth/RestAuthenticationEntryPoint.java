@@ -1,4 +1,4 @@
-package isa.vezbe1.spring_boot_example.security.auth;
+package isa.vezbe1.spring_boot_example.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
