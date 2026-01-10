@@ -4,9 +4,18 @@ import type { Comment } from '../types/Comment';
 
 export const videoService = {
   // Get all videos (for homepage - 3.1)
+  // Backend returns Page<VideoDTO>, we need to extract content array
   getAllVideos: async (): Promise<Video[]> => {
-    const response = await api.get('/videos');
-    return response.data;
+    const response = await api.get('/videos', {
+      params: {
+        page: 0,
+        size: 50
+      }
+    });
+    
+    // Backend returns: { content: [...], totalPages: X, totalElements: Y, ... }
+    // We need the content array
+    return response.data.content || [];
   },
 
   // Get single video by ID
@@ -17,8 +26,14 @@ export const videoService = {
 
   // Get comments for a video
   getVideoComments: async (videoId: number): Promise<Comment[]> => {
-    const response = await api.get(`/videos/${videoId}/comments`);
-    return response.data;
+    const response = await api.get(`/videos/${videoId}/comments`, {
+      params: {
+        page: 0,
+        size: 100
+      }
+    });
+    // Comments also return as Page object
+    return response.data.content || [];
   },
 
   // Increment view count

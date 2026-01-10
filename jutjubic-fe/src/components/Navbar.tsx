@@ -30,21 +30,32 @@ export const Navbar = ({ isAuthenticated, username, onLogout }: NavbarProps) => 
         {/* Auth Section */}
         <div style={styles.authSection}>
           {isAuthenticated ? (
-            <div style={styles.userMenuContainer}>
-              <button 
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                style={styles.userButton}
-              >
-                {username || 'User'}
-              </button>
+            <div style={styles.authenticatedSection}>
+              {/* Upload Button */}
+              <Link to="/upload" style={styles.uploadButton}>
+                + Upload Video
+              </Link>
               
-              {showUserMenu && (
-                <div style={styles.dropdown}>
-                  <button onClick={onLogout} style={styles.dropdownItem}>
-                    Logout
-                  </button>
-                </div>
-              )}
+              {/* User Menu */}
+              <div style={styles.userMenuContainer}>
+                <button 
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  style={styles.userButton}
+                >
+                  {username || 'User'}
+                </button>
+                
+                {showUserMenu && (
+                  <div style={styles.dropdown}>
+                    <Link to="/my-videos" style={styles.dropdownItem}>
+                      My Videos
+                    </Link>
+                    <button onClick={onLogout} style={styles.dropdownItem}>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div style={styles.authButtons}>
@@ -101,6 +112,25 @@ const styles: { [key: string]: React.CSSProperties } = {
   authSection: {
     marginLeft: '40px',
   },
+  authenticatedSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  uploadButton: {
+    padding: '8px 16px',
+    backgroundColor: '#ff0000',
+    border: 'none',
+    color: '#fff',
+    textDecoration: 'none',
+    borderRadius: '2px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
   authButtons: {
     display: 'flex',
     gap: '12px',
@@ -149,6 +179,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #303030',
     borderRadius: '2px',
     minWidth: '150px',
+    zIndex: 1001,
   },
   dropdownItem: {
     width: '100%',
@@ -159,5 +190,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'left',
     cursor: 'pointer',
     fontSize: '14px',
+    textDecoration: 'none',
+    display: 'block',
   },
 };

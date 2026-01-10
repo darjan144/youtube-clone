@@ -12,6 +12,8 @@ public class VideoDTO {
     private String title;
     private String description;
     private String thumbnailPath;
+    private String videoPath;
+    private Double videoSizeMb;
     private Long viewCount;
     private Timestamp createdAt;
 
@@ -25,12 +27,14 @@ public class VideoDTO {
     }
 
     public VideoDTO(Long id, String title, String description, String thumbnailPath,
-                    Long viewCount, Timestamp createdAt, UserDTO uploader,
-                    List<String> tags, Long commentCount) {
+                    String videoPath, Double videoSizeMb, Long viewCount, Timestamp createdAt,
+                    UserDTO uploader, List<String> tags, Long commentCount) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.thumbnailPath = thumbnailPath;
+        this.videoPath = videoPath;
+        this.videoSizeMb = videoSizeMb;
         this.viewCount = viewCount;
         this.createdAt = createdAt;
         this.uploader = uploader;
@@ -43,6 +47,8 @@ public class VideoDTO {
         this.title = video.getTitle();
         this.description = video.getDescription();
         this.thumbnailPath = video.getThumbnailPath();
+        this.videoPath = video.getVideoPath();
+        this.videoSizeMb = video.getVideoSizeMb();
         this.viewCount = video.getViewCount();
         this.createdAt = video.getCreatedAt();
         this.uploader = new UserDTO(video.getUploader());
@@ -52,6 +58,7 @@ public class VideoDTO {
         this.commentCount = (long) video.getComments().size();
     }
 
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -82,6 +89,22 @@ public class VideoDTO {
 
     public void setThumbnailPath(String thumbnailPath) {
         this.thumbnailPath = thumbnailPath;
+    }
+
+    public String getVideoPath() {
+        return videoPath;
+    }
+
+    public void setVideoPath(String videoPath) {
+        this.videoPath = videoPath;
+    }
+
+    public Double getVideoSizeMb() {
+        return videoSizeMb;
+    }
+
+    public void setVideoSizeMb(Double videoSizeMb) {
+        this.videoSizeMb = videoSizeMb;
     }
 
     public Long getViewCount() {

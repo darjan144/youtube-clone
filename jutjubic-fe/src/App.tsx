@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navbar } from './components/Navbar';
+import { HomePage } from './pages/HomePage';
+import authService from './services/authService';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    // Check if user is authenticated on app load
+    const authenticated = authService.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    
+    // TODO: Fetch current user info if authenticated
+    if (authenticated) {
+      // For now, we'll set a placeholder username
+      // Later you'll fetch this from the backend using authService
+      setUsername('User');
+    }
+  }, []);
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+    setUsername(undefined);
+    window.location.href = '/'; // Redirect to home
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <div style={styles.app}>
+        <Navbar 
+          isAuthenticated={isAuthenticated}
+          username={username}
+          onLogout={handleLogout}
+        />
+        
+        <main style={styles.main}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            {/* Placeholder routes - we'll add these pages later */}
+            <Route path="/login" element={<div style={styles.placeholder}>Login Page (Coming Soon)</div>} />
+            <Route path="/register" element={<div style={styles.placeholder}>Register Page (Coming Soon)</div>} />
+            <Route path="/upload" element={<div style={styles.placeholder}>Upload Video Page (Coming Soon)</div>} />
+            <Route path="/video/:id" element={<div style={styles.placeholder}>Video Player Page (Coming Soon)</div>} />
+          </Routes>
+        </main>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Router>
+  );
 }
 
-export default App
+const styles: { [key: string]: React.CSSProperties } = {
+  app: {
+    minHeight: '100vh',
+    backgroundColor: '#0f0f0f',
+  },
+  main: {
+    minHeight: 'calc(100vh - 60px)',
+  },
+  placeholder: {
+    color: '#fff',
+    textAlign: 'center',
+    padding: '100px 24px',
+    fontSize: '24px',
+  },
+};
+
+export default App;

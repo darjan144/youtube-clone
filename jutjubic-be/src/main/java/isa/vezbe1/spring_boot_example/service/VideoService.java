@@ -28,7 +28,7 @@ public class VideoService {
     @Autowired
     private VideoTagRepository videoTagRepository;
 
-
+    @Transactional(readOnly = true)
     public List<VideoDTO> getAllVideos() {
         List<Video> videos = videoRepository.findAllByOrderByCreatedAtDesc();
         return videos.stream()
@@ -36,11 +36,13 @@ public class VideoService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<VideoDTO> getAllVideos(Pageable pageable) {
         Page<Video> videos = videoRepository.findAllByOrderByCreatedAtDesc(pageable);
         return videos.map(VideoDTO::new);
     }
 
+    @Transactional(readOnly = true)
     public VideoDTO getVideoById(Long id) {
         Video video = videoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Video not found with id: " + id));
@@ -86,6 +88,7 @@ public class VideoService {
         videoRepository.incrementViewCount(videoId);
     }
 
+    @Transactional(readOnly = true)
     public List<VideoDTO> getVideosByUploader(User uploader) {
         List<Video> videos = videoRepository.findByUploaderOrderByCreatedAtDesc(uploader);
         return videos.stream()
@@ -93,7 +96,7 @@ public class VideoService {
                 .collect(Collectors.toList());
     }
 
-
+    @Transactional(readOnly = true)
     public List<VideoDTO> searchVideosByTitle(String title) {
         List<Video> videos = videoRepository.findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(title);
         return videos.stream()
