@@ -2,10 +2,10 @@
 INSERT INTO role (id, name) VALUES (1, 'ROLE_USER');
 INSERT INTO role (id, name) VALUES (2, 'ROLE_ADMIN');
 -- Users with embedded addresses (password: password123 for all)
-INSERT INTO users (id, username, password, first_name, last_name, email, enabled, street, city, country, postal_code, created_at, updated_at) VALUES (1, 'admin', '$2a$10$7PtcjEnWb/ZkgyXyxY0C.eFvfLXZk7NZbTr8ePdCGj9VLLvlF.3LG', 'Admin', 'User', 'admin@jutjubic.com', true, 'Admin Street 1', 'Belgrade', 'Serbia', '11000', NOW(), NOW());
-INSERT INTO users (id, username, password, first_name, last_name, email, enabled, street, city, country, postal_code, created_at, updated_at) VALUES (2, 'darjan', '$2a$10$7PtcjEnWb/ZkgyXyxY0C.eFvfLXZk7NZbTr8ePdCGj9VLLvlF.3LG', 'Darjan', 'Ristic', 'darjan@jutjubic.com', true, 'Cara Dusana 15', 'Novi Sad', 'Serbia', '21000', NOW(), NOW());
-INSERT INTO users (id, username, password, first_name, last_name, email, enabled, street, city, country, postal_code, created_at, updated_at) VALUES (3, 'marko', '$2a$10$7PtcjEnWb/ZkgyXyxY0C.eFvfLXZk7NZbTr8ePdCGj9VLLvlF.3LG', 'Marko', 'Markovic', 'marko@jutjubic.com', true, 'Knez Mihailova 10', 'Belgrade', 'Serbia', '11000', NOW(), NOW());
-INSERT INTO users (id, username, password, first_name, last_name, email, enabled, activation_token, token_expiry_date, street, city, country, postal_code, created_at, updated_at) VALUES (4, 'testuser', '$2a$10$7PtcjEnWb/ZkgyXyxY0C.eFvfLXZk7NZbTr8ePdCGj9VLLvlF.3LG', 'Test', 'User', 'test@jutjubic.com', false, 'test-activation-token-12345', NOW() + INTERVAL '24 hours', 'Test Street 1', 'Belgrade', 'Serbia', '11000', NOW(), NOW());
+INSERT INTO users (id, username, password, first_name, last_name, email, enabled, street, city, country, postal_code, created_at, updated_at) VALUES (1, 'admin', '$2a$12$cDNwmmqrdpys6AGjlZNyWuofIKicFZje7YB7Nq7dhYofoyxF1VpCC', 'Admin', 'User', 'admin@jutjubic.com', true, 'Admin Street 1', 'Belgrade', 'Serbia', '11000', NOW(), NOW());
+INSERT INTO users (id, username, password, first_name, last_name, email, enabled, street, city, country, postal_code, created_at, updated_at) VALUES (2, 'darjan', '$2a$12$cDNwmmqrdpys6AGjlZNyWuofIKicFZje7YB7Nq7dhYofoyxF1VpCC', 'Darjan', 'Ristic', 'darjan@jutjubic.com', true, 'Cara Dusana 15', 'Novi Sad', 'Serbia', '21000', NOW(), NOW());
+INSERT INTO users (id, username, password, first_name, last_name, email, enabled, street, city, country, postal_code, created_at, updated_at) VALUES (3, 'marko', '$2a$10$xQEaXsHCF5dYJcE2dKHCGeXC0JLdw3N5vQq6mB5KfIJCJvJxJCJCa', 'Marko', 'Markovic', 'marko@jutjubic.com', true, 'Knez Mihailova 10', 'Belgrade', 'Serbia', '11000', NOW(), NOW());
+INSERT INTO users (id, username, password, first_name, last_name, email, enabled, activation_token, token_expiry_date, street, city, country, postal_code, created_at, updated_at) VALUES (4, 'testuser', '$2a$12$cDNwmmqrdpys6AGjlZNyWuofIKicFZje7YB7Nq7dhYofoyxF1VpCC', 'Test', 'User', 'test@jutjubic.com', false, 'test-activation-token-12345', NOW() + INTERVAL '24 hours', 'Test Street 1', 'Belgrade', 'Serbia', '11000', NOW(), NOW());
 -- User Roles
 INSERT INTO user_role (user_id, role_id) VALUES (1, 2);
 INSERT INTO user_role (user_id, role_id) VALUES (2, 1);
@@ -54,3 +54,8 @@ INSERT INTO comments (id, text, author_id, video_id, created_at) VALUES (7, 'Can
 INSERT INTO comments (id, text, author_id, video_id, created_at) VALUES (8, 'This roadmap is exactly what I needed!', 2, 4, NOW() - INTERVAL '6 days');
 INSERT INTO comments (id, text, author_id, video_id, created_at) VALUES (9, 'Bookmarking this for reference.', 3, 4, NOW() - INTERVAL '5 days');
 INSERT INTO comments (id, text, author_id, video_id, created_at) VALUES (10, 'Would love to see more content like this.', 2, 4, NOW() - INTERVAL '4 days');
+
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+SELECT setval('videos_id_seq', (SELECT MAX(id) FROM videos));
+SELECT setval('comments_id_seq', (SELECT MAX(id) FROM comments));
+SELECT setval('video_tags_id_seq', (SELECT MAX(id) FROM video_tags));

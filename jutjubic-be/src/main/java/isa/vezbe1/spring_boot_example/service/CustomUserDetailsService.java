@@ -17,13 +17,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
-
-        if (user == null) {
-            throw new UsernameNotFoundException(
-                    String.format("No user found with username '%s'.", username)
-            );
-        }
+        // Since User.getUsername() returns email, lookup by email
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        String.format("No user found with username '%s'.", username)
+                ));
 
         return user;
     }

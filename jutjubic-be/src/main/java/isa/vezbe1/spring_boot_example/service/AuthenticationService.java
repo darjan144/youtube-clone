@@ -30,27 +30,26 @@ public class AuthenticationService {
     private AuthenticationManager authenticationManager;
 
     public String login(LoginDTO loginDTO) {
-
+        // Find user by email
         User user = userRepository.findByEmail(loginDTO.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
+        // Check if account is activated
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not activated. Please check your email for activation link.");
         }
 
-        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid email or password");
-        }
-
+        // Let Spring Security handle EVERYTHING - password check, user enabled, etc.
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        user.getUsername(), // Spring Security uses username
-                        loginDTO.getPassword()
+                        user.getUsername(),  // Spring Security needs username
+                        loginDTO.getPassword()  // Raw password
                 )
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        // Generate JWT token
         String token = tokenUtils.generateToken(user.getUsername());
 
         return token;
