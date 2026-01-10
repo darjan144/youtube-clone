@@ -1,7 +1,7 @@
 package isa.vezbe1.spring_boot_example.auth;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import isa.vezbe1.spring_boot_example.utils.TokenUtils;
+import isa.vezbe1.spring_boot_example.util.TokenUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

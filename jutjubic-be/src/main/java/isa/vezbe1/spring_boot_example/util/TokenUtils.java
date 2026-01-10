@@ -1,4 +1,4 @@
-package isa.vezbe1.spring_boot_example.utils;
+package isa.vezbe1.spring_boot_example.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

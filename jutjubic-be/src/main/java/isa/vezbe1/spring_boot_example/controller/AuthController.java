@@ -4,7 +4,9 @@ import isa.vezbe1.spring_boot_example.dto.LoginDTO;
 import isa.vezbe1.spring_boot_example.dto.RegistrationDTO;
 import isa.vezbe1.spring_boot_example.dto.UserDTO;
 import isa.vezbe1.spring_boot_example.service.AuthenticationService;
+import isa.vezbe1.spring_boot_example.service.RateLimiterService;
 import isa.vezbe1.spring_boot_example.service.UserService;
+import isa.vezbe1.spring_boot_example.util.IpAddressUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class AuthController {
     @Autowired
     private AuthenticationService authenticationService;
 
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegistrationDTO registrationDTO) {
         try {
@@ -48,12 +53,28 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDTO loginDTO,
                                    HttpServletRequest request) {
-        try {
-            // TODO: Add IP rate limiting here (with Redis)
-            // String ipAddress = getClientIpAddress(request);
-            // Check if IP has exceeded 5 attempts per minute
 
+        // Get client IP address
+        String ipAddress = IpAddressUtil.getClientIpAddress(request);
+
+        // Check rate limit BEFORE attempting login
+        if (rateLimiterService.isRateLimitExceeded(ipAddress)) {
+            long timeUntilReset = rateLimiterService.getTimeUntilReset(ipAddress);
+
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Too many login attempts. Please try again later.");
+            error.put("message", "Rate limit exceeded. Maximum 5 attempts per minute.");
+            error.put("retryAfterSeconds", timeUntilReset);
+
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+        }
+
+        try {
+            // Attempt login
             String token = authenticationService.login(loginDTO);
+
+            // Login successful - optionally reset rate limit
+            // rateLimiterService.resetRateLimit(ipAddress);
 
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
@@ -62,8 +83,21 @@ public class AuthController {
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
+            // Login failed - increment rate limit counter
+            int attempts = rateLimiterService.incrementLoginAttempt(ipAddress);
+            int remaining = rateLimiterService.getRemainingAttempts(ipAddress);
+
+            Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
+            error.put("attemptsRemaining", remaining);
+
+            if (remaining == 0) {
+                long timeUntilReset = rateLimiterService.getTimeUntilReset(ipAddress);
+                error.put("message", "Maximum attempts reached. Please try again later.");
+                error.put("retryAfterSeconds", timeUntilReset);
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+            }
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
     }
@@ -106,14 +140,5 @@ public class AuthController {
         response.put("message", "Logout successful");
 
         return ResponseEntity.ok(response);
-    }
-
-    private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedForHeader = request.getHeader("X-Forwarded-For");
-        if (xForwardedForHeader == null || xForwardedForHeader.isEmpty()) {
-            return request.getRemoteAddr();
-        }
-        // X-Forwarded-For can contain multiple IPs, take the first one
-        return xForwardedForHeader.split(",")[0].trim();
     }
 }

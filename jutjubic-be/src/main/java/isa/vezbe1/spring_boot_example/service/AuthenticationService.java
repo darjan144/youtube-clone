@@ -4,7 +4,7 @@ import isa.vezbe1.spring_boot_example.dto.LoginDTO;
 import isa.vezbe1.spring_boot_example.dto.UserDTO;
 import isa.vezbe1.spring_boot_example.model.User;
 import isa.vezbe1.spring_boot_example.repository.UserRepository;
-import isa.vezbe1.spring_boot_example.utils.TokenUtils;
+import isa.vezbe1.spring_boot_example.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
