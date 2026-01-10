@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { UserProfilePage } from './pages/UserProfilePage';
+import { VideoPlayerPage } from './pages/VideoPlayerPage';
 import authService from './services/authService';
 
 function App() {
@@ -60,6 +61,9 @@ function App() {
             {/* User Profile - Accessible to everyone (per spec 3.1) */}
             <Route path="/user/:id" element={<UserProfilePage />} />
             
+            {/* Video Player - Accessible to everyone (per spec 3.1) */}
+            <Route path="/video/:id" element={<VideoPlayerPage />} />
+            
             {/* Login - Only accessible to unauthenticated users */}
             <Route 
               path="/login" 
@@ -86,12 +90,6 @@ function App() {
                   <Navigate to="/login" replace />
                 )
               } 
-            />
-            
-            {/* Video Player - Accessible to everyone */}
-            <Route 
-              path="/video/:id" 
-              element={<div style={styles.placeholder}>Video Player Page (Coming Soon)</div>} 
             />
           </Routes>
         </main>

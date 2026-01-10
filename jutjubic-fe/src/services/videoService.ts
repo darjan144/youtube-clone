@@ -4,17 +4,10 @@ import type { Comment } from '../types/Comment';
 
 export const videoService = {
   // Get all videos (for homepage - 3.1)
-  // Backend returns Page<VideoDTO>, we need to extract content array
   getAllVideos: async (): Promise<Video[]> => {
     const response = await api.get('/videos', {
-      params: {
-        page: 0,
-        size: 50
-      }
+      params: { page: 0, size: 50 }
     });
-    
-    // Backend returns: { content: [...], totalPages: X, totalElements: Y, ... }
-    // We need the content array
     return response.data.content || [];
   },
 
@@ -24,15 +17,12 @@ export const videoService = {
     return response.data;
   },
 
-  // Get comments for a video
-  getVideoComments: async (videoId: number): Promise<Comment[]> => {
+  // Get comments for a video (returns paginated response)
+  getVideoComments: async (videoId: number, page: number = 0, size: number = 50): Promise<Comment[]> => {
     const response = await api.get(`/videos/${videoId}/comments`, {
-      params: {
-        page: 0,
-        size: 100
-      }
+      params: { page, size }
     });
-    // Comments also return as Page object
+    // Backend returns Page object with content array
     return response.data.content || [];
   },
 

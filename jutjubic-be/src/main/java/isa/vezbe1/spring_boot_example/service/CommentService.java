@@ -28,6 +28,7 @@ public class CommentService {
 
     private static final int MAX_COMMENTS_PER_HOUR = 60;
 
+    @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByVideoId(Long videoId) {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
@@ -38,6 +39,7 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<CommentDTO> getCommentsByVideoId(Long videoId, Pageable pageable) {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
@@ -76,7 +78,6 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        // Check if user is the author or admin
         if (!comment.getAuthor().getId().equals(user.getId()) &&
                 !user.getRoles().stream().anyMatch(role -> role.getName().equals("ROLE_ADMIN"))) {
             throw new RuntimeException("You don't have permission to delete this comment");
@@ -85,7 +86,7 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-
+    @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByAuthor(User author) {
         List<Comment> comments = commentRepository.findByAuthorOrderByCreatedAtDesc(author);
         return comments.stream()
@@ -93,7 +94,7 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
-
+    @Transactional(readOnly = true)
     public Long getCommentCount(Long videoId) {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));

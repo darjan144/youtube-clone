@@ -10,6 +10,8 @@ export interface Video {
   viewCount: number;
   uploader: User;
   createdAt: string;  // ISO date string
+  tags: string[];
+  commentCount: number;
 }
 
 export interface VideoListResponse {
