@@ -2,6 +2,7 @@ package isa.vezbe1.spring_boot_example.controller;
 
 import isa.vezbe1.spring_boot_example.dto.CreateVideoDTO;
 import isa.vezbe1.spring_boot_example.dto.VideoDTO;
+import isa.vezbe1.spring_boot_example.dto.VideoUploadDTO;
 import isa.vezbe1.spring_boot_example.model.User;
 import isa.vezbe1.spring_boot_example.service.AuthenticationService;
 import isa.vezbe1.spring_boot_example.service.VideoService;
@@ -11,9 +12,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +56,6 @@ public class VideoController {
         }
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getVideoById(@PathVariable Long id) {
         try {
@@ -64,6 +66,40 @@ public class VideoController {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+    }
+
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> uploadVideo(
+            @RequestPart("video") MultipartFile videoFile,
+            @RequestPart("thumbnail") MultipartFile thumbnailFile,
+            @RequestPart("title") String title,
+            @RequestPart("description") String description,
+            @RequestPart(value = "tags", required = false) List<String> tags,
+            @RequestPart(value = "location", required = false) String location) {
+        try {
+            User currentUser = authenticationService.getCurrentUser();
+
+            VideoUploadDTO uploadDTO = new VideoUploadDTO();
+            uploadDTO.setTitle(title);
+            uploadDTO.setDescription(description);
+            uploadDTO.setTags(tags);
+            uploadDTO.setLocation(location);
+
+            VideoDTO video = videoService.uploadVideo(videoFile, thumbnailFile, uploadDTO, currentUser);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(video);
+
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to upload video: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 
@@ -82,7 +118,6 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
-
 
     @PostMapping("/{id}/view")
     public ResponseEntity<?> incrementViewCount(@PathVariable Long id) {
@@ -109,43 +144,25 @@ public class VideoController {
 
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Search failed: " + e.getMessage());
+            error.put("error", "Failed to search videos: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getVideosByUser(@PathVariable Long userId) {
+    @GetMapping("/{id}/thumbnail")
+    public ResponseEntity<byte[]> getThumbnail(@PathVariable Long id) {
         try {
-            // This will be implemented when we have UserService method
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Not implemented yet");
-            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(response);
+            byte[] thumbnail = videoService.getCachedThumbnail(id);
+            if (thumbnail != null) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(thumbnail);
+            }
+
+            return ResponseEntity.notFound().build();
 
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-        }
-    }
-
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteVideo(@PathVariable Long id) {
-        try {
-            User currentUser = authenticationService.getCurrentUser();
-            videoService.deleteVideo(id, currentUser);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Video deleted successfully");
-
-            return ResponseEntity.ok(response);
-
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

@@ -6,6 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { UserProfilePage } from './pages/UserProfilePage';
 import { VideoPlayerPage } from './pages/VideoPlayerPage';
+import { UploadVideoPage } from './pages/UploadVideoPage';
 import authService from './services/authService';
 
 function App() {
@@ -80,17 +81,16 @@ function App() {
               } 
             />
             
-            {/* Upload - Only accessible to authenticated users */}
+            {/* Upload - Only accessible to authenticated users (NEW) */}
             <Route 
               path="/upload" 
               element={
-                isAuthenticated ? (
-                  <div style={styles.placeholder}>Upload Video Page (Coming Soon)</div>
-                ) : (
-                  <Navigate to="/login" replace />
-                )
+                isAuthenticated ? <UploadVideoPage /> : <Navigate to="/login" replace />
               } 
             />
+            
+            {/* Catch all - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
@@ -101,27 +101,21 @@ function App() {
 const styles: { [key: string]: React.CSSProperties } = {
   app: {
     minHeight: '100vh',
-    backgroundColor: '#0f0f0f',
+    backgroundColor: '#f9f9f9',
   },
   main: {
     minHeight: 'calc(100vh - 60px)',
   },
   loading: {
-    minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0f0f0f',
+    minHeight: '100vh',
+    backgroundColor: '#f9f9f9',
   },
   loadingText: {
-    color: '#fff',
     fontSize: '18px',
-  },
-  placeholder: {
-    color: '#fff',
-    textAlign: 'center',
-    padding: '100px 24px',
-    fontSize: '24px',
+    color: '#666',
   },
 };
 

@@ -38,6 +38,9 @@ public class Video {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
+    @Column(name = "location")
+    private String location;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploader_id", nullable = false)
     private User uploader;
@@ -68,6 +71,7 @@ public class Video {
         this.viewCount = 0L;
     }
 
+    // All getters and setters
     public Long getId() {
         return id;
     }
@@ -144,6 +148,14 @@ public class Video {
         this.updatedAt = updatedAt;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
     public User getUploader() {
         return uploader;
     }
@@ -160,16 +172,6 @@ public class Video {
         this.tags = tags;
     }
 
-    public void addTag(VideoTag tag) {
-        this.tags.add(tag);
-        tag.getVideos().add(this);
-    }
-
-    public void removeTag(VideoTag tag) {
-        this.tags.remove(tag);
-        tag.getVideos().remove(this);
-    }
-
     public Set<Comment> getComments() {
         return comments;
     }
@@ -177,29 +179,4 @@ public class Video {
     public void setComments(Set<Comment> comments) {
         this.comments = comments;
     }
-
-    public void addComment(Comment comment) {
-        this.comments.add(comment);
-        comment.setVideo(this);
-    }
-
-    public void removeComment(Comment comment) {
-        this.comments.remove(comment);
-        comment.setVideo(null);
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = new Timestamp(System.currentTimeMillis());
-        updatedAt = new Timestamp(System.currentTimeMillis());
-        if (viewCount == null) {
-            viewCount = 0L;
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = new Timestamp(System.currentTimeMillis());
-    }
-
 }
