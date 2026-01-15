@@ -18,6 +18,8 @@ jutjubic-fe/node_modules/
 jutjubic-fe/dist/
 jutjubic-fe/build/
 jutjubic-fe/.vite/
+node_modules/
+node_modules
 
 # IDEs and Editors
 .idea/
