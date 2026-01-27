@@ -1,10 +1,12 @@
 package isa.vezbe1.spring_boot_example.controller;
 
+import isa.vezbe1.spring_boot_example.dto.CommentDTO;
 import isa.vezbe1.spring_boot_example.dto.CreateVideoDTO;
 import isa.vezbe1.spring_boot_example.dto.VideoDTO;
 import isa.vezbe1.spring_boot_example.dto.VideoUploadDTO;
 import isa.vezbe1.spring_boot_example.model.User;
 import isa.vezbe1.spring_boot_example.service.AuthenticationService;
+import isa.vezbe1.spring_boot_example.service.CommentService;
 import isa.vezbe1.spring_boot_example.service.VideoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ public class VideoController {
 
     @Autowired
     private VideoService videoService;
+
+    @Autowired
+    private CommentService commentService;
 
     @Autowired
     private AuthenticationService authenticationService;
@@ -163,6 +168,49 @@ public class VideoController {
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // ========== COMMENTS ENDPOINTS (moved here to avoid routing conflicts) ==========
+
+    @GetMapping("/{videoId}/comments")
+    public ResponseEntity<?> getCommentsByVideo(
+            @PathVariable Long videoId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            if (page < 0 || size <= 0 || size > 100) {
+                Pageable pageable = PageRequest.of(0, 20);
+                Page<CommentDTO> comments = commentService.getCommentsByVideoId(videoId, pageable);
+                return ResponseEntity.ok(comments);
+            }
+
+            Pageable pageable = PageRequest.of(page, size);
+            Page<CommentDTO> comments = commentService.getCommentsByVideoId(videoId, pageable);
+
+            return ResponseEntity.ok(comments);
+
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+    }
+
+    @GetMapping("/{videoId}/comments/count")
+    public ResponseEntity<?> getCommentCount(@PathVariable Long videoId) {
+        try {
+            Long count = commentService.getCommentCount(videoId);
+
+            Map<String, Long> response = new HashMap<>();
+            response.put("count", count);
+
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
 }

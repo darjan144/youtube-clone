@@ -7,9 +7,6 @@ import isa.vezbe1.spring_boot_example.service.AuthenticationService;
 import isa.vezbe1.spring_boot_example.service.CommentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,29 +27,7 @@ public class CommentController {
     @Autowired
     private AuthenticationService authenticationService;
 
-    @GetMapping("/videos/{videoId}/comments")
-    public ResponseEntity<?> getCommentsByVideo(
-            @PathVariable Long videoId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        try {
-            if (page < 0 || size <= 0 || size > 100) {
-                Pageable pageable = PageRequest.of(0, 20);
-                Page<CommentDTO> comments = commentService.getCommentsByVideoId(videoId, pageable);
-                return ResponseEntity.ok(comments);
-            }
-
-            Pageable pageable = PageRequest.of(page, size);
-            Page<CommentDTO> comments = commentService.getCommentsByVideoId(videoId, pageable);
-
-            return ResponseEntity.ok(comments);
-
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        }
-    }
+    // Note: GET /videos/{videoId}/comments moved to VideoController to avoid routing conflicts
 
     @PostMapping("/comments")
     @PreAuthorize("isAuthenticated()")
@@ -77,22 +52,7 @@ public class CommentController {
     }
 
 
-    @GetMapping("/videos/{videoId}/comments/count")
-    public ResponseEntity<?> getCommentCount(@PathVariable Long videoId) {
-        try {
-            Long count = commentService.getCommentCount(videoId);
-
-            Map<String, Long> response = new HashMap<>();
-            response.put("count", count);
-
-            return ResponseEntity.ok(response);
-
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        }
-    }
+    // Note: GET /videos/{videoId}/comments/count moved to VideoController to avoid routing conflicts
 
     @DeleteMapping("/comments/{id}")
     @PreAuthorize("isAuthenticated()")
