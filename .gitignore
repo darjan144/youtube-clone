@@ -20,6 +20,7 @@ jutjubic-fe/build/
 jutjubic-fe/.vite/
 node_modules/
 node_modules
+CLAUDE.md
 
 # IDEs and Editors
 .idea/

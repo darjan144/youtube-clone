@@ -1,17 +1,26 @@
 package isa.vezbe1.spring_boot_example.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.time.Duration;
+
 @Configuration
+@EnableCaching  // ADD THIS - enables caching support
 public class RedisConfig {
 
     @Value("${spring.data.redis.host:localhost}")
@@ -26,10 +35,7 @@ public class RedisConfig {
         return new LettuceConnectionFactory(config);
     }
 
-    /**
-     * Primary RedisTemplate for rate limiting (String, Integer)
-     * Used by RateLimiterService
-     */
+    //rate limiting
     @Bean
     @Primary
     public RedisTemplate<String, Integer> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -45,10 +51,7 @@ public class RedisConfig {
         return template;
     }
 
-    /**
-     * RedisTemplate for thumbnail caching (String, byte[])
-     * Used by VideoService for storing image bytes
-     */
+    //thumbnail caching
     @Bean(name = "thumbnailRedisTemplate")
     public RedisTemplate<String, byte[]> thumbnailRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, byte[]> template = new RedisTemplate<>();
@@ -61,5 +64,22 @@ public class RedisConfig {
         template.setHashValueSerializer(new GenericToStringSerializer<>(byte[].class));
 
         return template;
+    }
+
+    //redis abstraction cache manager
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10))  // Cache expires after 10 minutes
+                .serializeKeysWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
+                )
+                .serializeValuesWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer())
+                );
+
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(cacheConfig)
+                .build();
     }
 }

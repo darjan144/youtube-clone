@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import videoService from '../services/videoService';
 import type { Video } from '../types/Video';
 import type { Comment } from '../types/Comment';
 
@@ -12,11 +13,24 @@ export const VideoPlayerPage = () => {
   const [loading, setLoading] = useState(true);
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const viewCountedRef = useRef(false);
 
   useEffect(() => {
     loadVideo();
     loadComments();
+    // Reset view counted flag when video changes
+    viewCountedRef.current = false;
   }, [id]);
+
+  // Increment view count when video loads
+  useEffect(() => {
+    if (video && !viewCountedRef.current) {
+      viewCountedRef.current = true;
+      videoService.incrementViewCount(video.id).catch(err => {
+        console.error('Failed to increment view count:', err);
+      });
+    }
+  }, [video]);
 
   const loadVideo = async () => {
     try {
@@ -111,13 +125,28 @@ export const VideoPlayerPage = () => {
     <div style={styles.container}>
       {/* Video Player Section */}
       <div style={styles.videoSection}>
-        {/* Placeholder Video Player */}
+        {/* Video Player */}
         <div style={styles.videoPlayer}>
-          <div style={styles.videoPlaceholder}>
-            <div style={styles.playIcon}>▶</div>
-            <p style={styles.placeholderText}>Video Player Placeholder</p>
-            <p style={styles.placeholderSubtext}>{video.title}</p>
-          </div>
+          {video.videoPath ? (
+            <video
+              controls
+              autoPlay={false}
+              style={styles.videoElement}
+              poster={`http://localhost:8084/api/videos/${video.id}/thumbnail`}
+            >
+              <source
+                src={`http://localhost:8084${video.videoPath}`}
+                type="video/mp4"
+              />
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div style={styles.videoPlaceholder}>
+              <div style={styles.playIcon}>▶</div>
+              <p style={styles.placeholderText}>Video unavailable</p>
+              <p style={styles.placeholderSubtext}>{video.title}</p>
+            </div>
+          )}
         </div>
 
         {/* Video Info */}
@@ -276,6 +305,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '12px',
     overflow: 'hidden',
     marginBottom: '16px',
+  },
+  videoElement: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+    backgroundColor: '#000',
   },
   videoPlaceholder: {
     width: '100%',

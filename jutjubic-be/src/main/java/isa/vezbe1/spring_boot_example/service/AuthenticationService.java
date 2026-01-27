@@ -39,17 +39,15 @@ public class AuthenticationService {
             throw new RuntimeException("Account not activated. Please check your email for activation link.");
         }
 
-        // Let Spring Security handle EVERYTHING - password check, user enabled, etc.
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        user.getUsername(),  // Spring Security needs username
+                        user.getUsername(),  // Spring Security needs username (which is email in our case)
                         loginDTO.getPassword()  // Raw password
                 )
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Generate JWT token
         String token = tokenUtils.generateToken(user.getUsername());
 
         return token;
@@ -63,7 +61,9 @@ public class AuthenticationService {
         }
 
         String username = authentication.getName();
-        return userRepository.findByUsername(username);
+
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + username));
     }
 
 

@@ -15,18 +15,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-
-// Filter koji ce presretati SVAKI zahtev klijenta ka serveru
-// (sem nad putanjama navedenim u WebSecurityConfig.configure(WebSecurity web))
-// Filter proverava da li JWT token postoji u Authorization header-u u zahtevu koji stize od klijenta
-// Ukoliko token postoji, proverava se da li je validan. Ukoliko je sve u redu, postavlja se autentifikacija
-// u SecurityContext holder kako bi podaci o korisniku bili dostupni u ostalim delovima aplikacije gde su neophodni
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private TokenUtils tokenUtils;
-
     private UserDetailsService userDetailsService;
-
     protected final Log LOGGER = LogFactory.getLog(getClass());
 
     public TokenAuthenticationFilter(TokenUtils tokenHelper, UserDetailsService userDetailsService) {
@@ -38,42 +30,78 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
+        String requestURI = request.getRequestURI();
+        String method = request.getMethod();
 
-        String username;
+        LOGGER.info("========== TOKEN FILTER START ==========");
+        LOGGER.info("Request: " + method + " " + requestURI);
 
-        // 1. Preuzimanje JWT tokena iz zahteva
-        String authToken = tokenUtils.getToken(request);
+        String username = null;
+        String authToken = null;
 
         try {
+            // 1. Extract JWT token from request
+            authToken = tokenUtils.getToken(request);
+            LOGGER.info("Step 1 - Token extracted: " + (authToken != null ? "YES (length: " + authToken.length() + ")" : "NO"));
 
             if (authToken != null) {
+                LOGGER.info("Token preview: " + authToken.substring(0, Math.min(20, authToken.length())) + "...");
 
-                // 2. Citanje korisnickog imena iz tokena
+                // 2. Read username from token
                 username = tokenUtils.getUsernameFromToken(authToken);
+                LOGGER.info("Step 2 - Username from token: " + username);
 
                 if (username != null) {
+                    LOGGER.info("Step 3 - Loading user details for username: " + username);
 
-                    // 3. Preuzimanje korisnika na osnovu username-a
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    // 4. Provera da li je prosledjeni token validan
-                    if (tokenUtils.validateToken(authToken, userDetails)) {
+                    // 3. Load user by username
+                    UserDetails userDetails = null;
+                    try {
+                        userDetails = userDetailsService.loadUserByUsername(username);
+                        LOGGER.info("Step 3 - User loaded successfully: " + userDetails.getUsername());
+                        LOGGER.info("User enabled: " + userDetails.isEnabled());
+                        LOGGER.info("User authorities: " + userDetails.getAuthorities());
+                    } catch (Exception e) {
+                        LOGGER.error("Step 3 - FAILED to load user: " + e.getMessage());
+                        throw e;
+                    }
 
-                        // 5. Kreiraj autentifikaciju
+                    // 4. Validate token
+                    LOGGER.info("Step 4 - Validating token...");
+                    boolean isValid = tokenUtils.validateToken(authToken, userDetails);
+                    LOGGER.info("Step 4 - Token valid: " + isValid);
+
+                    if (isValid) {
+                        // 5. Create authentication
+                        LOGGER.info("Step 5 - Creating authentication...");
                         TokenBasedAuthentication authentication = new TokenBasedAuthentication(userDetails);
                         authentication.setToken(authToken);
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+                        LOGGER.info("Step 5 - Authentication set successfully!");
+                        LOGGER.info("SecurityContext authentication: " + SecurityContextHolder.getContext().getAuthentication());
+                    } else {
+                        LOGGER.warn("Token validation FAILED - authentication NOT set");
                     }
+                } else {
+                    LOGGER.warn("Username is NULL - cannot authenticate");
                 }
+            } else {
+                LOGGER.warn("No token found in request - skipping authentication");
             }
 
         } catch (ExpiredJwtException ex) {
-            LOGGER.debug("Token expired!");
+            LOGGER.error("Token EXPIRED: " + ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.error("EXCEPTION during authentication: " + ex.getClass().getName() + ": " + ex.getMessage());
+            ex.printStackTrace();
         }
 
-        // prosledi request dalje u sledeci filter
+        LOGGER.info("Final SecurityContext authentication: " +
+                (SecurityContextHolder.getContext().getAuthentication() != null ?
+                        SecurityContextHolder.getContext().getAuthentication().getName() : "NULL"));
+        LOGGER.info("========== TOKEN FILTER END ==========");
+
+        // Continue filter chain
         chain.doFilter(request, response);
     }
-
-
-
 }

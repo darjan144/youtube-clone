@@ -67,9 +67,26 @@ export const HomePage = () => {
             >
               {/* Thumbnail */}
               <div style={styles.thumbnail}>
-                <div style={styles.thumbnailPlaceholder}>
+                {video.thumbnailPath ? (
+                  <img
+                    src={`http://localhost:8084/api/videos/${video.id}/thumbnail`}
+                    alt={video.title}
+                    style={styles.thumbnailImage}
+                    onError={(e) => {
+                      // Fallback to placeholder if image fails to load
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).nextElementSibling?.removeAttribute('style');
+                    }}
+                  />
+                ) : null}
+                <div style={{
+                  ...styles.thumbnailPlaceholder,
+                  display: video.thumbnailPath ? 'none' : 'flex'
+                }}>
                   {video.title.charAt(0).toUpperCase()}
                 </div>
+                {/* Red dot indicator in corner per spec 3.1 */}
+                <div style={styles.redDot} />
               </div>
 
               {/* Video Info */}
@@ -153,10 +170,32 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     position: 'relative',
   },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
   thumbnailPlaceholder: {
     fontSize: '64px',
     color: '#3ea6ff',
     fontWeight: 'bold',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  redDot: {
+    position: 'absolute',
+    top: '8px',
+    right: '8px',
+    width: '12px',
+    height: '12px',
+    backgroundColor: '#ff0000',
+    borderRadius: '50%',
   },
   videoInfo: {
     padding: '16px',

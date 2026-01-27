@@ -129,10 +129,11 @@ export const videoService = {
       console.log('🚀 CALLING api.post NOW...');
       
       const response = await api.post('/videos/upload', formData, {
+        // NO headers here - let browser set Content-Type with boundary automatically!
         onUploadProgress: (progressEvent: AxiosProgressEvent) => {
           if (progressEvent.total && onProgress) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            console.log(`📤 Upload progress: ${percentCompleted}% (${progressEvent.loaded}/${progressEvent.total} bytes)`);
+            console.log(`📤 Upload progress: ${percentCompleted}%`);
             onProgress(percentCompleted);
           }
         },

@@ -64,13 +64,31 @@ public class WebSecurityConfig {
                 exception.authenticationEntryPoint(restAuthenticationEntryPoint)
         );
 
+        // FIXED: Method-specific rules for videos
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()              // Login, registration, activation
-                .requestMatchers("/api/videos/**").permitAll()            // 3.1 - View videos (unauthenticated)
-                .requestMatchers("/api/comments/**").permitAll()          // 3.1 - View comments (unauthenticated)
-                .requestMatchers("/api/users/{id}").permitAll()          // 3.1 - View user profile (unauthenticated)
-                .requestMatchers("/h2-console/**").permitAll()           // H2 console if using H2 database
+                // Auth endpoints
+                .requestMatchers("/api/auth/**").permitAll()
 
+                // Videos - ONLY allow GET requests without authentication (3.1 requirement)
+                .requestMatchers(HttpMethod.GET, "/api/videos").permitAll()           // Get all videos
+                .requestMatchers(HttpMethod.GET, "/api/videos/{id}").permitAll()      // Get single video
+                .requestMatchers(HttpMethod.POST, "/api/videos/{id}/view").permitAll() // Increment view count
+                .requestMatchers(HttpMethod.GET, "/api/videos/{id}/comments").permitAll() // Get comments
+
+                // All other /api/videos/** requests REQUIRE authentication (including POST /api/videos/upload)
+                .requestMatchers("/api/videos/**").authenticated()
+
+                // Comments - allow unauthenticated viewing, but commenting requires auth
+                .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                .requestMatchers("/api/comments/**").authenticated()
+
+                // Users - allow viewing profiles
+                .requestMatchers(HttpMethod.GET, "/api/users/{id}").permitAll()
+
+                // H2 console (if using)
+                .requestMatchers("/h2-console/**").permitAll()
+
+                // All other requests require authentication
                 .anyRequest().authenticated()
         );
 
@@ -91,15 +109,19 @@ public class WebSecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
+                // Authentication endpoints
                 .requestMatchers(HttpMethod.POST, "/api/auth/login")          // 3.2 - Login endpoint
                 .requestMatchers(HttpMethod.POST, "/api/auth/register")       // 3.2 - Registration endpoint
                 .requestMatchers(HttpMethod.GET, "/api/auth/activate")        // 3.2 - Email activation endpoint
+
+                // Public video viewing endpoints (3.1)
                 .requestMatchers(HttpMethod.GET, "/api/videos")               // 3.1 - Get all videos
                 .requestMatchers(HttpMethod.GET, "/api/videos/{id}")          // 3.1 - Get single video
                 .requestMatchers(HttpMethod.GET, "/api/videos/{id}/comments") // 3.1 - Get comments for video
                 .requestMatchers(HttpMethod.GET, "/api/users/{id}")           // 3.1 - Get user profile
 
+                // Static resources (patterns cannot have content after **)
                 .requestMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "/favicon.ico",
-                        "/**/*.html", "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg");
+                        "/static/**", "/resources/**", "/public/**");
     }
 }

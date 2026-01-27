@@ -75,10 +75,10 @@ public class VideoController {
     public ResponseEntity<?> uploadVideo(
             @RequestPart("video") MultipartFile videoFile,
             @RequestPart("thumbnail") MultipartFile thumbnailFile,
-            @RequestPart("title") String title,
-            @RequestPart("description") String description,
-            @RequestPart(value = "tags", required = false) List<String> tags,
-            @RequestPart(value = "location", required = false) String location) {
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam(value = "tags", required = false) List<String> tags,
+            @RequestParam(value = "location", required = false) String location) {
         try {
             User currentUser = authenticationService.getCurrentUser();
 
