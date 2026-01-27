@@ -67,13 +67,21 @@ public class CommentService {
     @CacheEvict(value = {"comments", "commentPages"}, allEntries = true)
     public CommentDTO createComment(CreateCommentDTO createCommentDTO, User author) {
 
-        // Redis-based rate limiting
+        // Redis-based rate limiting using atomic increment
         String rateLimitKey = COMMENT_RATE_LIMIT_PREFIX + author.getId();
 
-        // Get current count from Redis
-        Integer currentCount = redisTemplate.opsForValue().get(rateLimitKey);
+        // Atomically increment and get the new count
+        Long newCount = redisTemplate.opsForValue().increment(rateLimitKey);
 
-        if (currentCount != null && currentCount >= MAX_COMMENTS_PER_HOUR) {
+        // Set expiration on first comment (when count becomes 1)
+        if (newCount != null && newCount == 1) {
+            redisTemplate.expire(rateLimitKey, 1, TimeUnit.HOURS);
+        }
+
+        // Check if rate limit exceeded AFTER incrementing
+        if (newCount != null && newCount > MAX_COMMENTS_PER_HOUR) {
+            // Decrement since we won't actually create the comment
+            redisTemplate.opsForValue().decrement(rateLimitKey);
             throw new RuntimeException("Rate limit exceeded. Maximum " + MAX_COMMENTS_PER_HOUR + " comments per hour allowed.");
         }
 
@@ -87,15 +95,6 @@ public class CommentService {
         comment.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
         Comment savedComment = commentRepository.save(comment);
-
-        // Increment the rate limit counter in Redis
-        if (currentCount == null) {
-            // First comment in this hour - set counter to 1 with 1 hour expiration
-            redisTemplate.opsForValue().set(rateLimitKey, 1, 1, TimeUnit.HOURS);
-        } else {
-            // Increment the counter
-            redisTemplate.opsForValue().increment(rateLimitKey);
-        }
 
         return new CommentDTO(savedComment);
     }

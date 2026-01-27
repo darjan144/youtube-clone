@@ -40,7 +40,7 @@ export const videoService = {
 
   // Create a comment (requires authentication)
   createComment: async (videoId: number, text: string): Promise<Comment> => {
-    const response = await api.post(`/videos/${videoId}/comments`, { text });
+    const response = await api.post('/comments', { videoId, text });
     return response.data;
   },
 

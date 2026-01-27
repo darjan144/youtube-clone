@@ -69,11 +69,17 @@ public class WebSecurityConfig {
                 // Auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
 
+                // Static uploads (videos and thumbnails served from filesystem)
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+
                 // Videos - ONLY allow GET requests without authentication (3.1 requirement)
                 .requestMatchers(HttpMethod.GET, "/api/videos").permitAll()           // Get all videos
+                .requestMatchers(HttpMethod.GET, "/api/videos/search").permitAll()    // Search videos
                 .requestMatchers(HttpMethod.GET, "/api/videos/{id}").permitAll()      // Get single video
+                .requestMatchers(HttpMethod.GET, "/api/videos/{id}/thumbnail").permitAll() // Get thumbnail
                 .requestMatchers(HttpMethod.POST, "/api/videos/{id}/view").permitAll() // Increment view count
                 .requestMatchers(HttpMethod.GET, "/api/videos/{id}/comments").permitAll() // Get comments
+                .requestMatchers(HttpMethod.GET, "/api/videos/{id}/comments/count").permitAll() // Get comment count
 
                 // All other /api/videos/** requests REQUIRE authentication (including POST /api/videos/upload)
                 .requestMatchers("/api/videos/**").authenticated()
@@ -116,9 +122,15 @@ public class WebSecurityConfig {
 
                 // Public video viewing endpoints (3.1)
                 .requestMatchers(HttpMethod.GET, "/api/videos")               // 3.1 - Get all videos
+                .requestMatchers(HttpMethod.GET, "/api/videos/search")        // 3.1 - Search videos
                 .requestMatchers(HttpMethod.GET, "/api/videos/{id}")          // 3.1 - Get single video
+                .requestMatchers(HttpMethod.GET, "/api/videos/{id}/thumbnail") // Get cached thumbnail
                 .requestMatchers(HttpMethod.GET, "/api/videos/{id}/comments") // 3.1 - Get comments for video
+                .requestMatchers(HttpMethod.GET, "/api/videos/{id}/comments/count") // Get comment count
                 .requestMatchers(HttpMethod.GET, "/api/users/{id}")           // 3.1 - Get user profile
+
+                // Uploaded files (videos and thumbnails)
+                .requestMatchers(HttpMethod.GET, "/uploads/**")
 
                 // Static resources (patterns cannot have content after **)
                 .requestMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "/favicon.ico",

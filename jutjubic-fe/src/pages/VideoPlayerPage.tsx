@@ -7,13 +7,19 @@ import type { Comment } from '../types/Comment';
 export const VideoPlayerPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [video, setVideo] = useState<Video | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const viewCountedRef = useRef(false);
+
+  // Comment form state
+  const [newComment, setNewComment] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const isLoggedIn = !!localStorage.getItem('token');
 
   useEffect(() => {
     loadVideo();
@@ -58,11 +64,11 @@ export const VideoPlayerPage = () => {
       const response = await fetch(
         `http://localhost:8084/api/videos/${id}/comments?page=0&size=50`
       );
-      
+
       if (!response.ok) {
         throw new Error('Failed to load comments');
       }
-      
+
       const data = await response.json();
       // Backend returns Page object with content array
       setComments(data.content || []);
@@ -71,6 +77,42 @@ export const VideoPlayerPage = () => {
       setComments([]);
     } finally {
       setCommentsLoading(false);
+    }
+  };
+
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newComment.trim()) {
+      setCommentError('Comment cannot be empty');
+      return;
+    }
+
+    if (!isLoggedIn) {
+      setCommentError('You must be logged in to comment');
+      return;
+    }
+
+    try {
+      setSubmittingComment(true);
+      setCommentError(null);
+
+      const createdComment = await videoService.createComment(Number(id), newComment.trim());
+
+      // Add new comment to the top of the list
+      setComments(prev => [createdComment, ...prev]);
+      setNewComment('');
+    } catch (err: any) {
+      console.error('Error posting comment:', err);
+      if (err.response?.status === 429) {
+        setCommentError('Rate limit exceeded. Maximum 60 comments per hour allowed.');
+      } else if (err.response?.status === 401) {
+        setCommentError('You must be logged in to comment');
+      } else {
+        setCommentError(err.response?.data?.error || 'Failed to post comment');
+      }
+    } finally {
+      setSubmittingComment(false);
     }
   };
 
@@ -210,6 +252,51 @@ export const VideoPlayerPage = () => {
         <h2 style={styles.commentsTitle}>
           Comments ({video.commentCount || comments.length})
         </h2>
+
+        {/* Comment Form */}
+        {isLoggedIn ? (
+          <form onSubmit={handleSubmitComment} style={styles.commentForm}>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment..."
+              style={styles.commentInput}
+              rows={3}
+              disabled={submittingComment}
+            />
+            {commentError && (
+              <div style={styles.commentError}>{commentError}</div>
+            )}
+            <div style={styles.commentFormActions}>
+              <button
+                type="button"
+                onClick={() => setNewComment('')}
+                style={styles.cancelButton}
+                disabled={submittingComment || !newComment.trim()}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                style={styles.submitButton}
+                disabled={submittingComment || !newComment.trim()}
+              >
+                {submittingComment ? 'Posting...' : 'Comment'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div style={styles.loginPrompt}>
+            <span>Please </span>
+            <span
+              style={styles.loginLink}
+              onClick={() => navigate('/login')}
+            >
+              log in
+            </span>
+            <span> to comment</span>
+          </div>
+        )}
 
         {commentsLoading ? (
           <div style={styles.commentsLoading}>Loading comments...</div>
@@ -442,6 +529,67 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '20px',
     fontWeight: 600,
     marginBottom: '24px',
+  },
+  commentForm: {
+    marginBottom: '24px',
+    paddingBottom: '24px',
+    borderBottom: '1px solid #303030',
+  },
+  commentInput: {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#0f0f0f',
+    border: '1px solid #303030',
+    borderRadius: '4px',
+    color: '#fff',
+    fontSize: '14px',
+    resize: 'vertical' as const,
+    fontFamily: 'inherit',
+    marginBottom: '12px',
+  },
+  commentFormActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '8px',
+  },
+  cancelButton: {
+    padding: '10px 16px',
+    backgroundColor: 'transparent',
+    color: '#aaa',
+    border: 'none',
+    borderRadius: '18px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+  submitButton: {
+    padding: '10px 16px',
+    backgroundColor: '#3ea6ff',
+    color: '#0f0f0f',
+    border: 'none',
+    borderRadius: '18px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+  commentError: {
+    color: '#ff4444',
+    fontSize: '12px',
+    marginBottom: '12px',
+  },
+  loginPrompt: {
+    color: '#aaa',
+    fontSize: '14px',
+    padding: '16px',
+    backgroundColor: '#181818',
+    borderRadius: '8px',
+    marginBottom: '24px',
+    textAlign: 'center' as const,
+  },
+  loginLink: {
+    color: '#3ea6ff',
+    cursor: 'pointer',
+    textDecoration: 'underline',
   },
   commentsLoading: {
     color: '#aaa',

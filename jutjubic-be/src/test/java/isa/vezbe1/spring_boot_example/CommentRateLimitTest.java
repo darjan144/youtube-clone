@@ -37,22 +37,14 @@ public class CommentRateLimitTest {
         // Clear Redis cache before each test
         redisTemplate.getConnectionFactory().getConnection().flushAll();
 
-        // Get or create a test user
-        testUser = userRepository.findByEmail("test@example.com")
-                .orElseGet(() -> {
-                    User user = new User();
-                    user.setEmail("test@example.com");
-                    user.setPassword("password");
-                    user.setFirstName("Test");
-                    user.setLastName("User");
-                    user.setEnabled(true);
-                    return userRepository.save(user);
-                });
+        // Use existing user from import.sql (darjan@jutjubic.com)
+        testUser = userRepository.findByEmail("darjan@jutjubic.com")
+                .orElseThrow(() -> new RuntimeException("Test user not found. Make sure import.sql is loaded."));
 
-        // Get or create a test video
+        // Get existing video from import.sql
         testVideo = videoRepository.findAll().stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No videos found in database. Please add test data."));
+                .orElseThrow(() -> new RuntimeException("No videos found in database. Make sure import.sql is loaded."));
     }
 
     @Test
@@ -116,14 +108,9 @@ public class CommentRateLimitTest {
         System.out.println("TEST: Multiple users commenting independently");
         System.out.println("========================================");
 
-        // Create another test user
-        User testUser2 = new User();
-        testUser2.setEmail("test2@example.com");
-        testUser2.setPassword("password");
-        testUser2.setFirstName("Test2");
-        testUser2.setLastName("User2");
-        testUser2.setEnabled(true);  // ← CHANGED from setActivated
-        testUser2 = userRepository.save(testUser2);
+        // Use another existing user from import.sql (marko@jutjubic.com)
+        User testUser2 = userRepository.findByEmail("marko@jutjubic.com")
+                .orElseThrow(() -> new RuntimeException("Second test user not found. Make sure import.sql is loaded."));
 
         // User 1 creates 60 comments
         for (int i = 1; i <= 60; i++) {
