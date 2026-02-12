@@ -91,6 +91,9 @@ public class WebSecurityConfig {
                 // Users - allow viewing profiles
                 .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
 
+                // Benchmark endpoint
+                .requestMatchers("/api/benchmark/**").permitAll()
+
                 // H2 console (if using)
                 .requestMatchers("/h2-console/**").permitAll()
 
@@ -131,6 +134,9 @@ public class WebSecurityConfig {
 
                 // Uploaded files (videos and thumbnails)
                 .requestMatchers(HttpMethod.GET, "/uploads/**")
+
+                // Benchmark endpoint
+                .requestMatchers(HttpMethod.POST, "/api/benchmark/**")
 
                 // Static resources (patterns cannot have content after **)
                 .requestMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "/favicon.ico",

@@ -1,6 +1,7 @@
 package isa.vezbe1.spring_boot_example.service;
 
 import isa.vezbe1.spring_boot_example.dto.CreateVideoDTO;
+import isa.vezbe1.spring_boot_example.dto.UploadEvent;
 import isa.vezbe1.spring_boot_example.dto.VideoDTO;
 import isa.vezbe1.spring_boot_example.dto.VideoUploadDTO;
 import isa.vezbe1.spring_boot_example.model.User;
@@ -46,6 +47,9 @@ public class VideoService {
     @Autowired
     @Qualifier("thumbnailRedisTemplate")
     private RedisTemplate<String, byte[]> redisTemplate;
+
+    @Autowired
+    private UploadEventProducer uploadEventProducer;
 
     @Transactional(readOnly = true)
     public List<VideoDTO> getAllVideos() {
@@ -119,6 +123,16 @@ public class VideoService {
 
             // Step 6: Cache thumbnail in Redis
             cacheThumbnail(video.getId(), thumbnailPath);
+
+            // Step 7: Send upload event to RabbitMQ (fire-and-forget)
+            try {
+                UploadEvent event = UploadEvent.fromVideo(video);
+                uploadEventProducer.sendJsonEvent(event);
+                uploadEventProducer.sendProtobufEvent(event);
+            } catch (Exception ex) {
+                // Don't let MQ failure break the upload
+                System.err.println("Failed to send upload event to MQ: " + ex.getMessage());
+            }
 
             return new VideoDTO(video);
 
