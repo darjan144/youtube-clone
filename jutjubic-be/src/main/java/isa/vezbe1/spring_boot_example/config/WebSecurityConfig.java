@@ -91,6 +91,12 @@ public class WebSecurityConfig {
                 // Users - allow viewing profiles
                 .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
 
+                // Watch Party REST endpoints require auth (handled by @PreAuthorize)
+                .requestMatchers("/api/watchparty/**").authenticated()
+
+                // WebSocket endpoint
+                .requestMatchers("/ws/**").permitAll()
+
                 // Benchmark endpoint
                 .requestMatchers("/api/benchmark/**").permitAll()
 
@@ -137,6 +143,9 @@ public class WebSecurityConfig {
 
                 // Benchmark endpoint
                 .requestMatchers(HttpMethod.POST, "/api/benchmark/**")
+
+                // WebSocket endpoint (bypass security filter for STOMP handshake)
+                .requestMatchers("/ws/**")
 
                 // Static resources (patterns cannot have content after **)
                 .requestMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "/favicon.ico",

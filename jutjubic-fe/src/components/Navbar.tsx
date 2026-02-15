@@ -35,6 +35,11 @@ export const Navbar = ({ isAuthenticated, username, onLogout }: NavbarProps) => 
               <Link to="/upload" style={styles.uploadButton}>
                 + Upload Video
               </Link>
+
+              {/* Watch Party Button */}
+              <Link to="/watchparty" style={styles.watchPartyButton}>
+                Watch Party
+              </Link>
               
               {/* User Menu */}
               <div style={styles.userMenuContainer}>
@@ -130,6 +135,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
+  },
+  watchPartyButton: {
+    padding: '8px 16px',
+    backgroundColor: 'transparent',
+    border: '1px solid #ff0000',
+    color: '#ff0000',
+    textDecoration: 'none',
+    borderRadius: '2px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
   },
   authButtons: {
     display: 'flex',

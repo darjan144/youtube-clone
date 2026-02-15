@@ -7,6 +7,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { UserProfilePage } from './pages/UserProfilePage';
 import { VideoPlayerPage } from './pages/VideoPlayerPage';
 import { UploadVideoPage } from './pages/UploadVideoPage';
+import { WatchPartyPage } from './pages/WatchPartyPage';
 import authService from './services/authService';
 
 function App() {
@@ -82,13 +83,21 @@ function App() {
             />
             
             {/* Upload - Only accessible to authenticated users (NEW) */}
-            <Route 
-              path="/upload" 
+            <Route
+              path="/upload"
               element={
                 isAuthenticated ? <UploadVideoPage /> : <Navigate to="/login" replace />
-              } 
+              }
             />
-            
+
+            {/* Watch Party - Only accessible to authenticated users */}
+            <Route
+              path="/watchparty/:roomId?"
+              element={
+                isAuthenticated ? <WatchPartyPage /> : <Navigate to="/login" replace />
+              }
+            />
+
             {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
