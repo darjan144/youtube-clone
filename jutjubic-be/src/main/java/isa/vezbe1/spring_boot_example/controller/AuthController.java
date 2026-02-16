@@ -1,5 +1,10 @@
 package isa.vezbe1.spring_boot_example.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import isa.vezbe1.spring_boot_example.dto.LoginDTO;
 import isa.vezbe1.spring_boot_example.dto.RegistrationDTO;
 import isa.vezbe1.spring_boot_example.dto.UserDTO;
@@ -20,7 +25,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173") // React frontend URL
+@CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Authentication", description = "User registration, login, activation, and session management")
 public class AuthController {
 
     @Autowired
@@ -32,6 +38,11 @@ public class AuthController {
     @Autowired
     private RateLimiterService rateLimiterService;
 
+    @Operation(summary = "Register a new user", description = "Creates a new user account and sends an activation email")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Registration successful, activation email sent"),
+            @ApiResponse(responseCode = "400", description = "Invalid registration data or email already taken")
+    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegistrationDTO registrationDTO) {
         try {
@@ -50,6 +61,12 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Login", description = "Authenticates a user and returns a JWT token. Rate limited to 5 attempts per minute per IP.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login successful, JWT token returned"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "429", description = "Too many login attempts, rate limit exceeded")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDTO loginDTO,
                                    HttpServletRequest request) {
@@ -102,8 +119,14 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Activate account", description = "Activates a user account using the token sent via email")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Account activated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired activation token")
+    })
     @GetMapping("/activate")
-    public ResponseEntity<?> activateAccount(@RequestParam("token") String token) {
+    public ResponseEntity<?> activateAccount(
+            @Parameter(description = "Activation token from email") @RequestParam("token") String token) {
         try {
             userService.activateAccount(token);
 
@@ -119,6 +142,11 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Get current user", description = "Returns the profile of the currently authenticated user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User profile returned"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
         try {
@@ -132,6 +160,8 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Logout", description = "Logs out the current user")
+    @ApiResponse(responseCode = "200", description = "Logout successful")
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         authenticationService.logout();

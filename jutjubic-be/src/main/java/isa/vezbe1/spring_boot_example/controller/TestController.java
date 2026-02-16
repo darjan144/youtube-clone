@@ -1,5 +1,10 @@
 package isa.vezbe1.spring_boot_example.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import isa.vezbe1.spring_boot_example.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,20 +20,19 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/test")
 @CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Test", description = "Development/testing endpoints (not for production)")
 public class TestController {
 
     @Autowired
     private EmailService emailService;
 
-    /**
-     * Test email configuration
-     *
-     * DELETE THIS ENDPOINT IN PRODUCTION!
-     *
-     * Usage: GET /api/test/email?to=your-email@example.com
-     */
+    @Operation(summary = "Test email sending", description = "Sends a test activation email. For development only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Email sent"),
+            @ApiResponse(responseCode = "500", description = "Failed to send email")
+    })
     @GetMapping("/email")
-    public ResponseEntity<?> testEmail(@RequestParam String to) {
+    public ResponseEntity<?> testEmail(@Parameter(description = "Recipient email address") @RequestParam String to) {
         try {
             // Send test activation email
             String testToken = "test-token-12345";
@@ -47,9 +51,8 @@ public class TestController {
         }
     }
 
-    /**
-     * Health check endpoint
-     */
+    @Operation(summary = "Health check", description = "Returns OK if the backend is running")
+    @ApiResponse(responseCode = "200", description = "Backend is healthy")
     @GetMapping("/health")
     public ResponseEntity<?> healthCheck() {
         Map<String, String> response = new HashMap<>();

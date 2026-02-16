@@ -1,5 +1,10 @@
 package isa.vezbe1.spring_boot_example.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import isa.vezbe1.spring_boot_example.dto.CommentDTO;
 import isa.vezbe1.spring_boot_example.dto.CreateVideoDTO;
 import isa.vezbe1.spring_boot_example.dto.VideoDTO;
@@ -27,6 +32,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/videos")
 @CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Videos", description = "Video CRUD, upload, search, thumbnails, and video comments")
 public class VideoController {
 
     @Autowired
@@ -38,10 +44,15 @@ public class VideoController {
     @Autowired
     private AuthenticationService authenticationService;
 
+    @Operation(summary = "Get all videos", description = "Returns a paginated list of all videos")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Videos retrieved successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping
     public ResponseEntity<?> getAllVideos(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size (max 100)") @RequestParam(defaultValue = "20") int size) {
         try {
             if (page < 0 || size <= 0 || size > 100) {
                 Pageable pageable = PageRequest.of(0, 20);
@@ -61,8 +72,13 @@ public class VideoController {
         }
     }
 
+    @Operation(summary = "Get video by ID", description = "Returns a single video by its ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Video found"),
+            @ApiResponse(responseCode = "404", description = "Video not found")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<?> getVideoById(@PathVariable Long id) {
+    public ResponseEntity<?> getVideoById(@Parameter(description = "Video ID") @PathVariable Long id) {
         try {
             VideoDTO video = videoService.getVideoById(id);
             return ResponseEntity.ok(video);
@@ -75,15 +91,22 @@ public class VideoController {
     }
 
 
+    @Operation(summary = "Upload a video", description = "Uploads a video file with thumbnail. Requires authentication.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Video uploaded successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated"),
+            @ApiResponse(responseCode = "500", description = "Upload failed")
+    })
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> uploadVideo(
-            @RequestPart("video") MultipartFile videoFile,
-            @RequestPart("thumbnail") MultipartFile thumbnailFile,
-            @RequestParam("title") String title,
-            @RequestParam("description") String description,
-            @RequestParam(value = "tags", required = false) List<String> tags,
-            @RequestParam(value = "location", required = false) String location) {
+            @Parameter(description = "Video file") @RequestPart("video") MultipartFile videoFile,
+            @Parameter(description = "Thumbnail image") @RequestPart("thumbnail") MultipartFile thumbnailFile,
+            @Parameter(description = "Video title") @RequestParam("title") String title,
+            @Parameter(description = "Video description") @RequestParam("description") String description,
+            @Parameter(description = "Video tags") @RequestParam(value = "tags", required = false) List<String> tags,
+            @Parameter(description = "Video location") @RequestParam(value = "location", required = false) String location) {
         try {
             User currentUser = authenticationService.getCurrentUser();
 
@@ -108,6 +131,12 @@ public class VideoController {
         }
     }
 
+    @Operation(summary = "Create video metadata", description = "Creates a video entry with metadata. Requires authentication.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Video created"),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> createVideo(@Valid @RequestBody CreateVideoDTO createVideoDTO) {
@@ -124,8 +153,13 @@ public class VideoController {
         }
     }
 
+    @Operation(summary = "Increment view count", description = "Increments the view count of a video by one")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "View count incremented"),
+            @ApiResponse(responseCode = "400", description = "Video not found")
+    })
     @PostMapping("/{id}/view")
-    public ResponseEntity<?> incrementViewCount(@PathVariable Long id) {
+    public ResponseEntity<?> incrementViewCount(@Parameter(description = "Video ID") @PathVariable Long id) {
         try {
             videoService.incrementViewCount(id);
 
@@ -141,8 +175,13 @@ public class VideoController {
         }
     }
 
+    @Operation(summary = "Search videos", description = "Searches videos by title")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Search results returned"),
+            @ApiResponse(responseCode = "500", description = "Search failed")
+    })
     @GetMapping("/search")
-    public ResponseEntity<?> searchVideos(@RequestParam String query) {
+    public ResponseEntity<?> searchVideos(@Parameter(description = "Search query") @RequestParam String query) {
         try {
             List<VideoDTO> videos = videoService.searchVideosByTitle(query);
             return ResponseEntity.ok(videos);
@@ -154,8 +193,14 @@ public class VideoController {
         }
     }
 
+    @Operation(summary = "Get video thumbnail", description = "Returns the cached thumbnail image for a video")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thumbnail returned"),
+            @ApiResponse(responseCode = "404", description = "Thumbnail not found"),
+            @ApiResponse(responseCode = "500", description = "Failed to retrieve thumbnail")
+    })
     @GetMapping("/{id}/thumbnail")
-    public ResponseEntity<byte[]> getThumbnail(@PathVariable Long id) {
+    public ResponseEntity<byte[]> getThumbnail(@Parameter(description = "Video ID") @PathVariable Long id) {
         try {
             byte[] thumbnail = videoService.getCachedThumbnail(id);
             if (thumbnail != null) {
@@ -173,11 +218,16 @@ public class VideoController {
 
     // ========== COMMENTS ENDPOINTS (moved here to avoid routing conflicts) ==========
 
+    @Operation(summary = "Get comments for video", description = "Returns a paginated list of comments for a specific video")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Comments retrieved"),
+            @ApiResponse(responseCode = "404", description = "Video not found")
+    })
     @GetMapping("/{videoId}/comments")
     public ResponseEntity<?> getCommentsByVideo(
-            @PathVariable Long videoId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @Parameter(description = "Video ID") @PathVariable Long videoId,
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size (max 100)") @RequestParam(defaultValue = "20") int size) {
         try {
             if (page < 0 || size <= 0 || size > 100) {
                 Pageable pageable = PageRequest.of(0, 20);
@@ -197,8 +247,13 @@ public class VideoController {
         }
     }
 
+    @Operation(summary = "Get comment count", description = "Returns the number of comments on a video")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Comment count returned"),
+            @ApiResponse(responseCode = "404", description = "Video not found")
+    })
     @GetMapping("/{videoId}/comments/count")
-    public ResponseEntity<?> getCommentCount(@PathVariable Long videoId) {
+    public ResponseEntity<?> getCommentCount(@Parameter(description = "Video ID") @PathVariable Long videoId) {
         try {
             Long count = commentService.getCommentCount(videoId);
 

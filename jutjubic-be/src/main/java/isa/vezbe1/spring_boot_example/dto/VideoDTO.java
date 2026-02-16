@@ -1,26 +1,46 @@
 package isa.vezbe1.spring_boot_example.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import isa.vezbe1.spring_boot_example.model.Video;
 
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Schema(description = "Video information")
 public class VideoDTO {
 
+    @Schema(description = "Video ID", example = "1")
     private Long id;
+
+    @Schema(description = "Video title", example = "My First Video")
     private String title;
+
+    @Schema(description = "Video description", example = "A short description of the video")
     private String description;
+
+    @Schema(description = "Path to thumbnail image", example = "/uploads/thumbnails/thumb1.jpg")
     private String thumbnailPath;
+
+    @Schema(description = "Path to video file", example = "/uploads/videos/video1.mp4")
     private String videoPath;
+
+    @Schema(description = "Video file size in MB", example = "25.5")
     private Double videoSizeMb;
+
+    @Schema(description = "Number of views", example = "1500")
     private Long viewCount;
+
+    @Schema(description = "Video upload timestamp")
     private Timestamp createdAt;
 
+    @Schema(description = "User who uploaded the video")
     private UserDTO uploader;
 
+    @Schema(description = "Video tags", example = "[\"music\", \"tutorial\"]")
     private List<String> tags;
 
+    @Schema(description = "Number of comments", example = "42")
     private Long commentCount;
 
     public VideoDTO() {

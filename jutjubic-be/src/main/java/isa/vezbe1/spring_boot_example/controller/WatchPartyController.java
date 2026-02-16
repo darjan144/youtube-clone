@@ -1,5 +1,10 @@
 package isa.vezbe1.spring_boot_example.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import isa.vezbe1.spring_boot_example.dto.WatchPartyPlayDTO;
 import isa.vezbe1.spring_boot_example.dto.WatchPartyRoomDTO;
 import isa.vezbe1.spring_boot_example.model.User;
@@ -19,6 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/watchparty")
 @CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Watch Party", description = "Watch party room creation, joining, and synchronized playback")
 public class WatchPartyController {
 
     @Autowired
@@ -30,6 +36,12 @@ public class WatchPartyController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Operation(summary = "Create a watch party room", description = "Creates a new watch party room. Requires authentication.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Room created"),
+            @ApiResponse(responseCode = "400", description = "Failed to create room"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     @PostMapping("/create")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> createRoom() {
@@ -42,9 +54,15 @@ public class WatchPartyController {
         }
     }
 
+    @Operation(summary = "Join a watch party room", description = "Joins an existing watch party room. Requires authentication.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Joined room"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Room not found")
+    })
     @PostMapping("/join/{roomId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> joinRoom(@PathVariable String roomId) {
+    public ResponseEntity<?> joinRoom(@Parameter(description = "Room ID") @PathVariable String roomId) {
         try {
             User currentUser = authenticationService.getCurrentUser();
             WatchPartyRoomDTO room = watchPartyService.joinRoom(roomId, currentUser);
@@ -54,9 +72,15 @@ public class WatchPartyController {
         }
     }
 
+    @Operation(summary = "Get watch party room", description = "Returns details of a watch party room. Requires authentication.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Room details returned"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Room not found")
+    })
     @GetMapping("/{roomId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getRoom(@PathVariable String roomId) {
+    public ResponseEntity<?> getRoom(@Parameter(description = "Room ID") @PathVariable String roomId) {
         try {
             WatchPartyRoomDTO room = watchPartyService.getRoom(roomId);
             return ResponseEntity.ok(room);
@@ -65,9 +89,15 @@ public class WatchPartyController {
         }
     }
 
+    @Operation(summary = "Leave a watch party room", description = "Leaves a watch party room. Requires authentication.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Left room"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Room not found")
+    })
     @PostMapping("/leave/{roomId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> leaveRoom(@PathVariable String roomId) {
+    public ResponseEntity<?> leaveRoom(@Parameter(description = "Room ID") @PathVariable String roomId) {
         try {
             User currentUser = authenticationService.getCurrentUser();
             watchPartyService.leaveRoom(roomId, currentUser);

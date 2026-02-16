@@ -1,5 +1,9 @@
 package isa.vezbe1.spring_boot_example.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import isa.vezbe1.spring_boot_example.dto.UploadEvent;
 import isa.vezbe1.spring_boot_example.service.UploadEventProducer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,14 +14,17 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/benchmark")
+@Tag(name = "Benchmark", description = "JSON vs Protobuf serialization benchmarking via RabbitMQ")
 public class BenchmarkController {
 
     @Autowired
     private UploadEventProducer uploadEventProducer;
 
+    @Operation(summary = "Run serialization benchmark", description = "Sends sample upload events via both JSON and Protobuf, returning timing and size comparison statistics")
+    @ApiResponse(responseCode = "200", description = "Benchmark results returned")
     @PostMapping("/upload-events")
     public ResponseEntity<Map<String, Object>> benchmarkUploadEvents(
-            @RequestParam(defaultValue = "50") int count) {
+            @Parameter(description = "Number of messages to send (default 50)") @RequestParam(defaultValue = "50") int count) {
 
         List<Long> jsonSerTimes = new ArrayList<>();
         List<Long> jsonSizes = new ArrayList<>();

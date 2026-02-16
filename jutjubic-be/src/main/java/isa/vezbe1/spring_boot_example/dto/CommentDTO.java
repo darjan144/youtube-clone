@@ -1,17 +1,26 @@
 package isa.vezbe1.spring_boot_example.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import isa.vezbe1.spring_boot_example.model.Comment;
 
 import java.sql.Timestamp;
 
+@Schema(description = "Comment information")
 public class CommentDTO {
 
+    @Schema(description = "Comment ID", example = "1")
     private Long id;
+
+    @Schema(description = "Comment text", example = "Great video!")
     private String text;
+
+    @Schema(description = "Comment creation timestamp")
     private Timestamp createdAt;
 
+    @Schema(description = "Comment author")
     private UserDTO author;
 
+    @Schema(description = "ID of the video this comment belongs to", example = "5")
     private Long videoId;
 
     public CommentDTO() {

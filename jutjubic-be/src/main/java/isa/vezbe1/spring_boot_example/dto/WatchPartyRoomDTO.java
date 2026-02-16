@@ -1,11 +1,19 @@
 package isa.vezbe1.spring_boot_example.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 
+@Schema(description = "Watch party room information")
 public class WatchPartyRoomDTO {
 
+    @Schema(description = "Unique room identifier", example = "abc12345")
     private String roomId;
+
+    @Schema(description = "Room owner")
     private UserDTO owner;
+
+    @Schema(description = "List of room members")
     private List<UserDTO> members;
 
     public WatchPartyRoomDTO() {

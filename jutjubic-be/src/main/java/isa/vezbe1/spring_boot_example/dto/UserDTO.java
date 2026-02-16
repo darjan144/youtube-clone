@@ -1,13 +1,24 @@
 package isa.vezbe1.spring_boot_example.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import isa.vezbe1.spring_boot_example.model.User;
 
+@Schema(description = "User profile information")
 public class UserDTO {
 
+    @Schema(description = "User ID", example = "1")
     private Long id;
+
+    @Schema(description = "Username", example = "johndoe")
     private String username;
+
+    @Schema(description = "First name", example = "John")
     private String firstName;
+
+    @Schema(description = "Last name", example = "Doe")
     private String lastName;
+
+    @Schema(description = "Email address", example = "john@example.com")
     private String email;
 
     public UserDTO() {

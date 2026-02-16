@@ -100,6 +100,9 @@ public class WebSecurityConfig {
                 // Benchmark endpoint
                 .requestMatchers("/api/benchmark/**").permitAll()
 
+                // Swagger UI / OpenAPI docs
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+
                 // H2 console (if using)
                 .requestMatchers("/h2-console/**").permitAll()
 
@@ -146,6 +149,9 @@ public class WebSecurityConfig {
 
                 // WebSocket endpoint (bypass security filter for STOMP handshake)
                 .requestMatchers("/ws/**")
+
+                // Swagger UI / OpenAPI docs
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
 
                 // Static resources (patterns cannot have content after **)
                 .requestMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "/favicon.ico",
